@@ -1,0 +1,3 @@
+<template><div class="metric glass"><div class="metric-icon"><i :class="['ti',icon]"></i></div><div><strong>{{ value }}</strong><span>{{ label }}</span></div></div></template>
+<script setup>defineProps({icon:String,label:String,value:[String,Number]})</script>
+<style scoped>.metric{padding:18px;display:flex;gap:13px;align-items:center}.metric-icon{width:42px;height:42px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px}.metric strong{display:block;font:800 22px Manrope,sans-serif}.metric span{display:block;font-size:11px;color:var(--text-muted);margin-top:2px}</style>

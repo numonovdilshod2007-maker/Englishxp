@@ -1,0 +1,9 @@
+<template>
+  <div class="grid"><div class="glass panel"><div class="panel-top"><h3>{{ item.id ? 'So‘zni tahrirlash' : 'Yangi so‘z' }}</h3><button v-if="item.id" class="link-btn" @click="reset">Bekor qilish</button></div><form @submit.prevent="submit"><div class="row"><label>Level<select v-model.number="item.level"><option v-for="n in 15" :key="n" :value="n">Level {{n}}</option></select></label><label>English<input v-model.trim="item.en" placeholder="umbrella" required /></label><label>Uzbek<input v-model.trim="item.uz" placeholder="soyabon" required /></label></div><label>Example (EN)<input v-model.trim="item.example" placeholder="Take an umbrella." required /></label><label>Example (UZ)<input v-model.trim="item.exampleUz" placeholder="Soyabon oling." required /></label><button class="primary" :disabled="saving">{{saving?'Saqlanmoqda…':item.id?'Saqlash':'So‘z qo‘shish'}}</button></form></div><div class="glass panel"><div class="panel-top"><h3>Custom so‘zlar <span>{{items.length}}</span></h3></div><div v-if="!items.length" class="empty">Hali custom so‘z yo‘q.</div><div v-for="x in items" :key="x.id" class="item"><div><b>{{x.en}}</b><span>{{x.uz}}</span><small>Level {{x.level}}</small></div><div class="actions"><button @click="$emit('edit',x)"><i class="ti ti-pencil"></i></button><button class="danger" @click="$emit('delete',x.id)"><i class="ti ti-trash"></i></button></div></div></div></div>
+</template>
+<script setup>
+import { ref, watch } from 'vue'
+const props=defineProps({items:Array,initial:Object,saving:Boolean});const emit=defineEmits(['save','edit','delete']);const item=ref({...props.initial});
+watch(()=>props.initial,(v)=>{item.value={...v}},{deep:true});function submit(){emit('save',{...item.value})}function reset(){item.value={level:1,en:'',uz:'',example:'',exampleUz:''}}
+</script>
+<style scoped>@import './editor.css';</style>

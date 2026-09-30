@@ -1,0 +1,26 @@
+{
+  "name": "EnglishXP — Ingliz tilini o'yin kabi o'rganing",
+  "short_name": "EnglishXP",
+  "description": "Duolingo uslubidagi ingliz tili o'rganish platformasi — lug'at, grammatika, hikoyalar, XP va reyting bilan.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f7faf8",
+  "theme_color": "#3ce67d",
+  "lang": "uz",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

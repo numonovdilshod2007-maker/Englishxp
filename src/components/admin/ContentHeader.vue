@@ -1,0 +1,4 @@
+<template><div class="content-head"><div><div class="title"><i :class="['ti',icon]"></i><h2>{{title}}</h2></div><p>{{text}}</p></div><div class="hint"><i class="ti ti-cloud-check"></i> Auto-save to Firestore</div></div></template>
+<script setup>defineProps({icon:String,title:String,text:String})</script>
+<style scoped>.content-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-end;margin:0 0 16px}.title{display:flex;align-items:center;gap:9px}.title i{color:var(--accent);font-size:20px}.title h2{margin:0;font:800 24px Manrope,sans-serif}.content-head p{margin:6px 0 0;color:var(--text-secondary);font-size:12px;line-height:1.5}.hint{font-size:11px;color:#7f8cff;background:rgba(111,124,255,.08);padding:8px 10px;border-radius:999px;white-space:nowrap}@media(max-width:700px){.content-head{align-items:flex-start;flex-direction:column}.hint{align-self:flex-start}}
+</style>

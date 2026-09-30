@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read: if request.auth != null;
+
+      // isAdmin can never be set/changed by the client — it must be edited
+      // manually in the Firebase console. isPro/proExpiresAt can only be
+      // granted by the Cloud Functions payment callbacks (Admin SDK bypasses
+      // these rules entirely) — the client may only ever flip isPro to
+      // false (self-cancel), never to true.
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.get('isAdmin', false) == false
+        && request.resource.data.get('isPro', false) == false;
+      allow update: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false)
+        && (request.resource.data.get('isPro', false) == false
+            || request.resource.data.get('isPro', false) == resource.data.get('isPro', false))
+        && request.resource.data.get('proExpiresAt', null) == resource.data.get('proExpiresAt', null);
+
+      // Cross-user writes are limited to a small whitelist of "social"
+      // fields — followers (follow/unfollow), friendStreaks (mutual
+      // practice streak, mirrored onto the friend's doc), and the partner
+      // request/accept flow (partnerRequestsIncoming + activePartnerId get
+      // written onto the *other* person's doc when you request/accept/
+      // remove a study partner).
+      allow update: if request.auth != null
+        && request.auth.uid != userId
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['followers', 'friendStreaks', 'partnerRequestsIncoming', 'activePartnerId']);
+
+      // In-app notifications (practice reminders, level-ups, weekly
+      // reports). Only the owner can ever read or write their own feed —
+      // these are always written by the owner's own client, never by
+      // another user, so no cross-user write case is needed here.
+      match /notifications/{notifId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Admin-managed content (added via the in-app Admin panel). Readable by
+    // anyone signed in (merged into lessons/stories at runtime); writable
+    // only by accounts flagged isAdmin == true on their user document.
+    match /customWords/{wordId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customStories/{storyId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customGrammar/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customListening/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customWriting/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customIeltsReading/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customIeltsListening/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customIeltsTask1/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customIeltsTask2/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /customIeltsSpeaking/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true;
+    }
+
+    // 1-on-1 DM: conversation ID is always sorted(uid1, uid2).join('_')
+    // Only the two participants can read/write messages in their conversation.
+    match /dms/{convId}/messages/{msgId} {
+      allow read: if request.auth != null && isConvParticipant(convId);
+      allow create: if request.auth != null
+        && isConvParticipant(convId)
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    function isConvParticipant(convId) {
+      let parts = convId.split('_');
+      return parts.size() == 2
+        && (parts[0] == request.auth.uid || parts[1] == request.auth.uid);
+    }
+
+    // Community discussion boards. Posts are grouped by a fixed set of
+    // topic IDs (general/grammar/speaking/vocabulary/ielts) chosen from a
+    // client-side list — any signed-in user can start a post or comment,
+    // but only the author can delete their own post/comment. Likes are one
+    // doc per (post, uid) so a user can only like once and only toggle
+    // their own like — no counter field to fight over.
+    match /discussions/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1000;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+      allow update: if false;
+
+      match /comments/{commentId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500;
+        allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+        allow update: if false;
+      }
+
+      match /likes/{uid} {
+        allow read: if request.auth != null;
+        allow create, delete: if request.auth != null && request.auth.uid == uid;
+        allow update: if false;
+      }
+    }
+  }
+}

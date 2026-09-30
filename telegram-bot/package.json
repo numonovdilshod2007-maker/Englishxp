@@ -1,0 +1,16 @@
+{
+  "name": "english-xp-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "English XP Telegram bot — daily word, streak reminders, grammar quiz",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.5"
+  }
+}
